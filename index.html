@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            position: relative;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: url("images/mammoth-mountain.jpg") center/cover no-repeat;
+            min-height: 100vh;
+            padding: 2rem 2rem 4rem 2rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .page-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* lower than container */
+            background: linear-gradient(
+                rgba(18, 192, 255, 0.3),
+                rgba(16, 9, 149, 0.05)
+            );
+            backdrop-filter: blur(1px);
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative; /* make z-index work */
+            z-index: 2;         /* above overlay */
+        }
+
+        main {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            z-index: 15;
+            
+            /* Horizontal centering */
+            margin: 0 auto;
+            
+            /* Vertical centering (if you want it centered in viewport) */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #073b8d 0%, #0b2c65 100%);
+            padding: 2.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .viewer-section {
+            padding: 1rem;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #4a9eff;
+        }
+
+        .instructions h3 {
+            color: #1e3c72;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .instructions p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* SKETCHFAB EMBED CONTAINER */
+        .model-viewer {
+            width: 100%;
+            height: 60vh;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #999;
+            position: relative;
+        }
+
+        /* Style the iframe when it's added */
+        .model-viewer iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .controls-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .control-item {
+            text-align: center;
+        }
+
+        .control-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .control-item h4 {
+            color: #1e3c72;
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+
+        .control-item p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .ar-button {
+            display: block; /* Change from inline-block to block */
+            margin: 1rem auto; /* Add auto margins for horizontal centering */
+            width: fit-content; /* Keep button width to content size */
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #073b8d 0%, #0b2c65 100%);
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ar-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .ar-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .ar-button:hover::before {
+            left: 100%;
+        }
+
+        .ar-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .viewer-section {
+                padding: 1.5rem;
+            }
+
+            .model-viewer {
+                height: 400px;
+            }
+
+            .controls-info {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-overlay"></div>
+
+    <main>
+        <!-- Header -->
+        <div class="header">
+            <h1>Mammoth Mountain Ski Map</h1>
+            <p>Explore the mountain from every angle</p>
+        </div>
+
+        <!-- Viewer Section -->
+        <div class="viewer-section">
+            <!-- ============================================ -->
+
+            <div class="model-viewer"> <iframe title="3D Mammoth Mountain" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/ba55c42fd2ff4cb98b833beede2f1781/embed"> 
+            </iframe></div>
+
+            <a href="https://player.onirix.com/projects/b7958f31d576408fa88a9c6c43eafe10/webar?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgwNjMwLCJwcm9qZWN0SWQiOjEzMTQzNiwicm9sZSI6MywiaWF0IjoxNzY1MzM2NTQxfQ.yklGetVe-At0NKGvs0H5Plex2pwr89Gcl9O5jwr4f54&background=alpha&preview=false&hide_controls=false&ar_button=false" 
+            class="ar-button" 
+            target="_blank">
+            View in AR
+             </a>
+
+        </div>
+    </main>
+    </div>
+</body>
+</html>
